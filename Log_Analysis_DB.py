@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import psycopg2
 from datetime import datetime
@@ -17,6 +17,7 @@ def main():
 
 
 def get_q1():
+    """1. What are the most popular three articles of all time?"""
     print """The most popular three articles of all time are """
     print "..."
     db = psycopg2.connect(database=DBNAME)
@@ -33,14 +34,17 @@ def get_q1():
 
 
 def get_q2():
+    """2. Who are the most popular article authors of all time?"""
     print """The most popular article authors of all time are """
     print "..."
     db = psycopg2.connect(database=DBNAME)
     c = db.cursor()
-    c.execute("""select A.name, count(L.title) as title_count
+    c.execute("""select name, SUM(title_count) from
+              (select A.name, count(L.title) as title_count
               from log_analysis as L, authors as A
               where L.status like '%200%' and L.auth_id=A.id
-              group by L.title, A.name order by title_count desc""")
+              group by L.title, A.name order by title_count desc)
+              as sub group by name order by sum desc""")
     posts = c.fetchall()
     i = 0
     for i in range(len(posts)):
@@ -49,6 +53,7 @@ def get_q2():
 
 
 def get_q3():
+    """3. On which days did more than 1% of requests lead to errors?"""
     print"""Days on which more than 1% of requests lead to errors are"""
     print "..."
     db = psycopg2.connect(database=DBNAME)
